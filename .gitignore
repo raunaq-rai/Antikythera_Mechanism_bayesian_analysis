@@ -1,0 +1,22 @@
+# Ignore LaTeX and build artifacts
+*.aux
+*.bbl
+*.bcf
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+
+# Ignore Python pickle and zip files
+*.pkl
+*.zip
+
+# Allow important file types
+!*.pdf
+!*.png
+!*.tex
+!*.bib
+!*.ipynb
+!*.md
