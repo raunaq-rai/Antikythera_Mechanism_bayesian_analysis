@@ -28,7 +28,7 @@
 \author{Raunaq Rai (rsr45@cam.ac.uk)\\
     Data Intensive Science, Department of Physics, University of Cambridge
 }
-\date{04 April, 2025 \\ \vspace{0.2cm} {\small Word Count: XXX}}
+\date{04 April, 2025 \\ \vspace{0.2cm} {\small Word Count: 2982}}
 
 \begin{document}
 
@@ -38,9 +38,9 @@
 
 The Antikythera Mechanism is one of the most remarkable technological discoveries from the ancient world. Found in 1901 (by accident) in a shipwreck near the Greek island of Antikythera, the device dates back to between 140 and 60 BCE (perhaps another opportunity for bayesian inference). What makes it so extraordinary is its system of bronze gears, which could be manually turned to display a wide range of astronomical phenomena. Housed in a wooden box, the mechanism likely showed the positions of the Sun and Moon, lunar phases, eclipse predictions, and even events tied to the ancient Greek calendar such as the Olympic Games \cite{Seiradakis2018}.
 
-Thanks techniques like X-ray tomography, researchers have been able to reconstruct parts of the mechanism and get a clearer picture of how it worked. One key component is the calendar ring — a circular disk punctured with holes arranged around its edge. Only part of this ring survives, but it provides clues to the type of calendar the device may have used. While it was once thought to represent a 365-day solar calendar, new analysis suggests it may instead follow a 354-day lunar cycle \cite{Budiselic2021}.
+Thanks to X-ray tomography, researchers have reconstructed parts of the mechanism and gained a clearer picture of its workings. One key component is the calendar ring — a circular disk punctured with holes arranged around its edge. Only part of this ring survives, but it provides clues to the type of calendar the device may have used. While it was once thought to represent a 365-day solar calendar, new analysis suggests it may instead follow a 354-day lunar cycle \cite{Budiselic2021}.
 
-In this project, I use Bayesian Inference to infer how many holes the full ring originally contained? Using the known positions of 81 holes across eight broken and misaligned fragments, I apply Hamiltonian Monte Carlo Markov Chains to estimate the total number of holes. Two different models are used to account for uncertainties in the hole positions: one assuming isotropic Gaussian error, and another that separates radial and tangential uncertainties \cite{Woan2024}. By comparing the results from both models, I aim to determine which best fits the data and what this can tell us about how the mechanism was designed and about the way time was measured in the ancient world.
+In this project, we use Bayesian Inference to infer how many holes the full ring originally contained. Using the known positions of 81 holes across eight broken and misaligned fragments, we apply Hamiltonian Monte Carlo Markov Chains to estimate the total number of holes. We use two models for positional uncertainty: one with isotropic Gaussian error, and one separating radial and tangential components\cite{Woan2024}. By comparing the results from both models, we aim to determine which best fits the data and what this can tell us about how the mechanism was designed and about the way time was measured in the ancient world.
 
 \begin{figure}[t!]
     \centering
@@ -52,7 +52,7 @@ In this project, I use Bayesian Inference to infer how many holes the full ring 
 
 \section{Measured Hole Locations $d_i \in \mathbb{R}^2$ in the $x$-$y$ Plane}
 
-The data used in this analysis was obtained from the public dataset provided by Thoeni, Budiselic, and Ramsey~\cite{Thoeni2019}. The dataset contains the $x$ and $y$ coordinates of 81 holes in the surviving fragments of the calendar ring. These holes are distributed across eight fragments, each of which is colour-coded in Figure~\ref{fig:parta}.
+The dataset~\cite{Thoeni2019} contains the $x$ and $y$ coordinates of 81 holes in the surviving fragments of the calendar ring. These holes are distributed across eight fragments, each of which is colour-coded in Figure~\ref{fig:parta}.
 
 \begin{figure}[t!]
     \centering
@@ -65,7 +65,6 @@ The data used in this analysis was obtained from the public dataset provided by 
 
 Following the model described in Section 2 of Woan and Bayley~\cite{Woan2024}, we assume that the original calendar ring contained $N$ holes, evenly spaced around a circle of radius $r$. The full ring no longer survives, and the measured hole locations come from 8 fragmented sections. Each fragment is slightly misaligned due to relative translations and in-plane rotations.
 
-The Cartesian coordinates of the $i$-th hole in a given section can be modelled as:
 \begin{equation}
     \vec{m}_i = 
     \begin{pmatrix}
@@ -138,7 +137,9 @@ The Mahalanobis distance generalises Euclidean distance by incorporating directi
             \begin{pmatrix} \delta_{r,i} \\ \delta_{t,i} \end{pmatrix}
           = \frac{\delta_{r,i}^2}{\sigma_r^2} + \frac{\delta_{t,i}^2}{\sigma_t^2}.
 \end{equation}
-This distance penalises deviations more strongly in directions of higher precision (smaller $\sigma$). It replaces the quadratic form in Equation (2) for the anisotropic case, leading to:
+
+This distance penalises deviations more strongly in directions of higher precision. It replaces the quadratic form in Equation (2) for the anisotropic case, leading to:
+
 \begin{equation}
     \log \mathcal{L}(D \mid \theta) = -\frac{1}{2} \sum_{i=1}^{N_{\text{holes}}} \left[ D_i^2 + \log(2\pi \sigma_r \sigma_t) \right],
 \end{equation}
@@ -146,41 +147,38 @@ where the covariance determinant is $|\Sigma_{\text{rt}}| = \sigma_r^2 \sigma_t^
 
 \subsection{Parameter Summary}
 
-All parameters influence the likelihood in one of three ways:
 \begin{itemize}
     \item $N$ and $r$ define the angular placement and radius of holes around the full ring.
     \item $(x_j, y_j, \alpha_j)$ describe the translation and rotation of each fractured segment.
     \item $\sigma$ (isotropic) or $(\sigma_r, \sigma_t)$ (anisotropic) define the scale of measurement uncertainty and influence both the distance and normalisation terms in the log-likelihood.
 \end{itemize}
 
-Both error models were implemented in NumPy and JAX. The JAX version supports automatic differentiation and was used for posterior sampling with Hamiltonian Monte Carlo via \texttt{NumPyro}. Consistency between implementations was verified numerically.
+Both error models were implemented in NumPy and JAX.
 
 \section{Derivatives of Log-Likelihood}
 
 We computed its gradient with respect to the model parameters $\theta_\mu$:
 
-\[
+\begin{equation}
 \frac{\partial}{\partial \theta_\mu} \log L(\mathcal{D} \mid \boldsymbol{\theta})
-\]
+\end{equation}
 
-Rather than deriving analytic expressions for the derivatives, we opted to use automatic differentiation via the jax library. The log-likelihood was implemented in a fully JAX-compatible format, which allowed for straightforward computation of the gradient and Hessian. Automatic differentiation works by applying the chain rule systematically (as shown in the previous Research Computing C1 coursework) to the sequence of operations used to evaluate the function, allowing exact derivatives to be computed efficiently and accurately without symbolic algebra or numerical approximation.
+For the derivatives we used automatic differentiation via the jax library. The log-likelihood was implemented in a JAX-compatible format, which allowed for straightforward computation of the gradient and Hessian. Automatic differentiation works by applying the chain rule systematically (as shown in the previous Research Computing C1 coursework) to the sequence of operations used to evaluate the function, allowing exact derivatives to be computed efficiently and accurately.
 
 
 To ensure the correctness of the computed gradients, we also implemented a finite difference approximation using central differences:
 
-\[
+\begin{equation}
 \frac{\partial \log L}{\partial \theta_\mu} \approx \frac{\log L(\theta_\mu + \epsilon) - \log L(\theta_\mu - \epsilon)}{2\epsilon}
-\]
+\end{equation}
 
-This was implemented using NumPy and compared against the JAX gradients for all parameters. To test the gradient computation independently of model fitting, we evaluated both methods at a set of arbitrary parameter values that we selected manually. This allowed us to verify that the automatic differentiation mechanism worked correctly across a region of parameter space.
+This was compared against the JAX gradients for all parameters. We evaluated both methods at a set of arbitrary parameter values that we selected manually. This allowed us to verify that the automatic differentiation mechanism worked correctly.
 
-We then computed the relative error between the two methods:
-
-\[
+\begin{equation}
 \text{Relative Difference} = \frac{|\nabla_{\text{JAX}} - \nabla_{\text{FD}}|}{|\nabla_{\text{FD}}| + \epsilon}
-\]
+\end{equation}
 
-The results were visualised in a bar chart with a logarithmic y-axis, shown in Figure~\ref{fig:rel_diff}. The relative differences were found to be negligible (on the order of $10^{-6}$ or less), confirming the accuracy of the automatic differentiation approach.
+The relative differences were found to be negligible, confirming the accuracy of the automatic differentiation approach.
 
 \begin{figure}[H]
     \centering
@@ -189,21 +187,11 @@ The results were visualised in a bar chart with a logarithmic y-axis, shown in F
     \label{fig:rel_diff}
 \end{figure}
 
-Given the simplicity and clarity of using \texttt{jax}, as well as the reliability of the results validated via finite differences, we chose to use automatic differentiation for all tasks requiring the computation of gradients.
-
 \section{Maximum Likelihood Estimation}
 
-To estimate the best-fitting model parameters, we performed maximum likelihood estimation (MLE) for both the isotropic and anisotropic covariance models. Sections 0 and 4, which each contained only a single hole, were excluded. The remaining data—79 holes across six sections—were sorted by section and hole number, and grouped into $(x, y)$ coordinate lists for each section.
+To estimate the best-fitting model parameters, we performed maximum likelihood estimation (MLE) for both the isotropic and anisotropic covariance models. Sections 0 and 4, which each contained only a single hole, were excluded.
 
 We used the \texttt{L-BFGS-B} optimisation algorithm \cite{liu1989lbfgs} to maximise the log-likelihood function, with gradients computed via automatic differentiation using \texttt{jax}. Optimisation was carried out on the negative log-likelihood.
-
-For the anisotropic model, the parameters include:
-\begin{itemize}
-    \item Total number of holes $N$
-    \item Ring radius $R$
-    \item Radial and tangential uncertainties $\sigma_r$ and $\sigma_t$
-    \item Angular offsets $\phi_j$, and $x$/$y$ centre offsets for each of the six sections
-\end{itemize}
 
 The parameter ordering is shown in Table~\ref{tab:anisotropic-params}.
 
@@ -255,7 +243,7 @@ Using these parameters, we predicted the expected hole positions for each sectio
     \label{fig:MLE_plot}
 \end{figure}
 
-We repeated the optimisation process for the isotropic model, where a single shared uncertainty parameter $\sigma$ is used for both radial and tangential directions. The same objective function, data format, and parameter initialisation strategy were used, with the exception that only one $\sigma$ term was included.
+We repeated the optimisation process for the isotropic model, where a single shared uncertainty parameter $\sigma$ is used for both radial and tangential directions. 
 
 The optimiser returned the following result:
 
@@ -272,7 +260,7 @@ Maximised Log-Likelihood: $-20.37$
   1.36361957e+02]
 \end{verbatim}
 
-As before, we predicted the hole positions using the optimised parameters and overlaid them on the measured data (Figure~\ref{fig:MLE_plot_iso}). The same plotting convention was used:
+As before, we predicted the hole positions using the optimised parameters and overlaid them on the measured data (Figure~\ref{fig:MLE_plot_iso}).
 
 \begin{figure}[H]
     \centering
@@ -286,25 +274,25 @@ Comparing the two models, the anisotropic version achieved a higher maximised lo
 
 \section{Bayesian Inference and Posterior Sampling}
 
-To refine our understanding of the hole positions, we performed Bayesian inference using Hamiltonian Monte Carlo (HMC) sampling, implemented via the \texttt{NumPyro} library. This approach allowed us to estimate the full posterior distributions of the model parameters, incorporating both prior knowledge and the observed data.
+We performed Bayesian inference using Hamiltonian Monte Carlo (HMC) sampling. This allowed us to estimate the full posterior distributions of the model parameters, incorporating prior knowledge and the observed data.
 
-The priors were informed by maximum likelihood estimates (MLE), previous literature, and physical considerations—particularly the hypothesis that the mechanism tracks a lunar calendar. These priors are summarised below and visualised in Figure~\ref{fig:priors_plot}:
+The priors were informed by previous literature, physical considerations and the hypothesis that the mechanism tracks a lunar calendar. These priors are summarised below and visualised in Figure~\ref{fig:priors_plot}:
 
 \begin{itemize}
-    \item \textbf{Total number of holes:} $N \sim \mathcal{N}(354.4, 3.5)$, reflecting the hypothesis that the calendar ring encodes a lunar year of 12 months (each $\approx 29.53$ days). The mean is informed by our own maximum likelihood estimate (MLE), as well as historical interpretations of the mechanism’s purpose as a calendrical device~\cite{freeth2014eclipse}\cite{carman2019babylonian}\cite{price1974gears}.
-    \item \textbf{Ring radius:} $R \sim \mathcal{N}(77.35, 2)$, based on the MLE results and results published by Woan and Bayley~\cite{Woan2024}.
-    \item \textbf{Uncertainties:}
+    \item Total number of holes: $N \sim \mathcal{N}(354.4, 3.5)$, reflecting the hypothesis that the calendar ring encodes a lunar year of 12 months (each $\approx 29.53$ days). The mean is informed by our own maximum likelihood estimate (MLE), as well as historical interpretations of the mechanism’s purpose as a calendrical device~\cite{freeth2014eclipse}\cite{carman2019babylonian}\cite{price1974gears}.
+    \item Ring radius: $R \sim \mathcal{N}(77.35, 2)$, based on the MLE results and results published by Woan and Bayley~\cite{Woan2024}.
+    \item Uncertainties:
         \begin{itemize}
-            \item For the \textit{anisotropic model}, radial and tangential uncertainties were given log-normal priors to reflect the fact that uncertainties cannot be negative. The peaks of these priors also align with results from our MLE and results published by Woan and Bayley~\cite{Woan2024}.
+            \item For the anisotropic model, radial and tangential uncertainties were given log-normal priors to reflect the fact that uncertainties cannot be negative. The peaks of these priors also align with results from our MLE and results published by Woan and Bayley~\cite{Woan2024}.
             \[
             \sigma_r \sim \text{LogNormal}(\log(0.028), 0.25), \quad \sigma_t \sim \text{LogNormal}(\log(0.13), 0.3).
             \]
-            \item For the \textit{isotropic model}, the shared uncertainty parameter was:
+            \item For the isotropic model, the shared uncertainty parameter was:
             \[
             \sigma \sim \text{LogNormal}(\log(0.13), 0.45).
             \]
         \end{itemize}
-    \item \textbf{Section-specific parameters:} angular offsets $\phi_j$, and spatial offsets $x_j$, $y_j$. Again, these were chosen to align with our MLE results as well as results published by Woan and Bayley~\cite{Woan2024}. These were given a large standard deviation to allow our HMC to explore a broad parameter space looking at within-section misalignments and minor translational shifts between fractured segments:
+    \item Section-specific parameters: angular offsets $\phi_j$, and spatial offsets $x_j$, $y_j$. Again, these were chosen to align with our MLE results as well as results published by Woan and Bayley~\cite{Woan2024}. These were given a large standard deviation to allow our HMC to explore a broad parameter space looking at within-section misalignments and minor translational shifts between fractured segments:
 
     \[
     \phi_j \sim \mathcal{N}(-2.5, 0.5), \quad x_j \sim \mathcal{N}(80, 5), \quad y_j \sim \mathcal{N}(135, 5).
@@ -320,7 +308,7 @@ The priors were informed by maximum likelihood estimates (MLE), previous literat
     \label{fig:priors_plot}
 \end{figure}
 
-Posterior sampling was performed using the No-U-Turn Sampler (NUTS)~\cite{hoffman2011nouturnsampleradaptivelysetting}, a variant of HMC known for its efficiency in high-dimensional spaces. We used 12 parallel chains (corresponding to the number of CPU cores on my machine), each with 10,000 warmup steps and 50,000 sampling steps. Initialisation was done via the \texttt{init\_to\_median} strategy for robust convergence.
+Posterior sampling was performed using the No-U-Turn Sampler (NUTS)~\cite{hoffman2011nouturnsampleradaptivelysetting}, a variant of HMC known for its efficiency in high-dimensional spaces. We used 12 parallel chains (corresponding to the number of CPU cores on my machine), each with 10,000 warmup steps and 50,000 sampling steps. Initialisation was done via the \texttt{init\_to\_median} strategy.
 
 \subsection*{Anisotropic Model Results}
 
@@ -329,20 +317,20 @@ For the anisotropic model, trace plots for key parameters (Figure~\ref{fig:trace
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{traceplot_aniso.png}
-    \caption{Trace plots for the anisotropic model. Each colour represents one of the 12 chains.}
+    \caption{Trace plots for the anisotropic model across all 12 chains}
     \label{fig:traceplot_aniso}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{cornerplot_aniso.png}
-    \caption{Corner plot showing posterior distributions and joint correlations for the anisotropic model parameters $N$, $R$, $\sigma_r$, and $\sigma_t$.}
+    \caption{Corner plot showing posterior distributions for the anisotropic model parameters.}
     \label{fig:cornerplot_aniso}
 \end{figure}
 
 \subsection*{Isotropic Model Results}
 
-For comparison, the isotropic model was fit using the same MCMC settings. The trace plots (Figure~\ref{fig:traceplot_iso}) again demonstrate good convergence, and the corresponding corner plot (Figure~\ref{fig:cornerplot_iso}) summarises the posterior distributions and joint parameter behaviour.
+The isotropic model was fit using the same MCMC settings. The trace plots (Figure~\ref{fig:traceplot_iso}) again demonstrate good convergence, and the corresponding corner plot (Figure~\ref{fig:cornerplot_iso}) summarises the posterior distributions and joint parameter behaviour.
 
 \begin{figure}[H]
     \centering
@@ -354,7 +342,7 @@ For comparison, the isotropic model was fit using the same MCMC settings. The tr
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{cornerplot_iso.png}
-    \caption{Corner plot showing the posterior distributions and pairwise correlations for the isotropic model parameters: $N$, $R$, and $\sigma$.}
+    \caption{Corner plot showing the posterior distributions for the isotropic model parameters.}
     \label{fig:cornerplot_iso}
 \end{figure}
 
@@ -379,13 +367,13 @@ For comparison, the isotropic model was fit using the same MCMC settings. The tr
 
 The predictive distributions show clear differences between the two models. In the isotropic case (Figure~\ref{fig:predictive_iso}), the posterior predictive samples form a near-circular cloud around the true location, which is consistent with the assumption of equal measurement uncertainty in all directions.
 
-The anisotropic model (Figure~\ref{fig:predictive_aniso}) produces a clearly elliptical distribution. This shape reflects the underlying assumption that uncertainty differs between the radial and tangential directions, given the circular structure of the mechanism. Radial positions are better constrained due to the curvature of the ring, while tangential offsets are more sensitive to misalignments between broken fragments. This results in a tight ellipse along the radial direction and a broader spread tangentially.
+The anisotropic model (Figure~\ref{fig:predictive_aniso}) produces an elliptical distribution. This shape reflects the assumption that uncertainty differs between the radial and tangential directions. Radial positions are better constrained due to the curvature of the ring, while tangential offsets are more sensitive to misalignments between broken fragments. This results in a tight ellipse along the radial direction and a broader spread tangentially.
 
-The sharpness and clarity of these distributions are a direct result of the large number of posterior samples used. We ran 12 parallel chains, each drawing 50,000 samples after 10,000 warmup steps, producing 600,000 raw samples.
+The sharpness and clarity of these distributions are a result of the large number of posterior samples used: 600,000 raw samples were produced.
 
 \section{Covariance Structure and Model Comparison}
 
-The covariance matrix $\Sigma$ plays a central role in modelling uncertainty in the measured hole positions. In two dimensions, $\Sigma$ defines the shape and orientation of the uncertainty ellipse around each predicted hole location $\vec{m}_i$, encoding not only the variance in the $x$ and $y$ directions but also potential correlation between them. In the isotropic case, the same uncertainty is assumed in all directions, leading to circular error regions:
+In two dimensions, the covariance matrix $\Sigma$ defines the shape and orientation of the uncertainty ellipse around each predicted hole location $\vec{m}_i$. In the isotropic case, the same uncertainty is assumed in all directions, leading to circular error regions:
 \[
 \Sigma = \sigma^2 I.
 \]
@@ -398,18 +386,18 @@ However, this may be overly simplistic. A more physically realistic model accoun
 0 & \sigma_t^2
 \end{pmatrix}
 \]
-in the local radial–tangential coordinate frame. This anisotropic model reflects the idea that measurement uncertainty is typically larger in the direction \textit{around} the ring (tangential) than \textit{towards/away from} the centre (radial), especially when holes are arc-fitted or distorted by curvature.
+This anisotropic model reflects the idea that measurement uncertainty is typically larger in the direction around the ring (tangential) than towards/away from the centre (radial), especially when holes are arc-fitted or distorted by curvature.
 
 \section*{Model Comparison}
 
-To formally assess whether the data favour the anisotropic model, we used the Savage-Dickey density ratio to compute the Bayes factor between the isotropic and anisotropic models. This method is valid when one model (here, the isotropic model) is a special case of the other (the anisotropic model), obtained by setting a specific parameter to a fixed value.
+We used the Savage-Dickey density ratio to compute the Bayes factor between the isotropic and anisotropic models. This method is valid when one model (the isotropic model) is a special case of the other (anisotropic model), obtained by setting a specific parameter to a fixed value.
 
-In our case, the isotropic model corresponds to $\Delta = \sigma_t - \sigma_r = 0$, where the radial and tangential uncertainties are equal. The Savage-Dickey ratio compares the posterior and prior densities of this parameter at $\Delta = 0$:
+The isotropic model corresponds to $\Delta = \sigma_t - \sigma_r = 0$, where the radial and tangential uncertainties are equal. The Savage-Dickey ratio compares the posterior and prior densities of this parameter at $\Delta = 0$:
 \[
 \text{Bayes Factor} = \frac{p(\Delta = 0 \mid D)}{p(\Delta = 0)}.
 \]
 
-We estimated these densities using kernel density estimation (KDE) applied to posterior and prior samples of $\Delta$. The posterior placed almost no probability mass at $\Delta = 0$, whereas the prior allowed moderate support:
+We estimated these densities using kernel density estimation applied to posterior and prior samples of $\Delta$. The posterior placed almost no probability mass at $\Delta = 0$, whereas the prior allowed moderate support:
 \[
 \text{Posterior density at } \Delta = 0: \quad 0.00000, \quad \text{Prior: } 0.00868,
 \]
@@ -417,31 +405,28 @@ We estimated these densities using kernel density estimation (KDE) applied to po
 \Rightarrow \text{Bayes Factor (isotropic vs. anisotropic)} \approx 0.000.
 \]
 
-This result provides decisive evidence \textit{against} the isotropic model. The data strongly favour a model where radial and tangential uncertainties differ — a physically reasonable outcome, given the geometry of the circular ring. The anisotropic model better captures the direction-dependent structure of measurement error.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{savage_dickey_sigma_diff.png}
-    \caption{Savage-Dickey density ratio comparing prior and posterior densities of $\Delta = \sigma_t - \sigma_r$. The posterior distribution is sharply peaked away from zero, indicating strong support for the anisotropic model.}
+    \caption{Savage-Dickey density ratio comparing prior and posterior densities of $\Delta = \sigma_t - \sigma_r$. }
     \label{fig:savage-dickey}
 \end{figure}
 
-
-This result provides decisive evidence \textit{against} the isotropic model. The data favour a model in which radial and tangential uncertainties differ — a physically reasonable outcome given the mechanism's circular geometry. The radial–tangential error structure likely arises from the way the ring was measured or manufactured, with uncertainty elongated along the arc.
+The posterior distribution is sharply peaked away from zero, result is evidence against the isotropic model. The data favours a model in which radial and tangential uncertainties differ. The radial–tangential error structure likely arises from the way the ring was measured or manufactured, with uncertainty elongated along the arc.
 
 \subsection*{Nested Sampling and Log-Evidence Comparison}
 
-To further assess model preference, we used \textit{nested sampling} to estimate the marginal likelihood (also called the \textit{evidence}) for each model. Unlike the Savage-Dickey ratio, which only compares posterior and prior densities at a single point, nested sampling provides a global measure of how well a model explains the data across its entire parameter space.
+We used nested sampling to estimate the evidence for each model. Unlike the Savage-Dickey ratio, which only compares posterior and prior densities at a single point, nested sampling provides a measure of how well a model explains the data across its entire parameter space.
 
 The evidence for a model $\mathcal{M}$ is defined as:
 \[
 \log Z = \log \int \mathcal{L}(\theta) \, \pi(\theta) \, d\theta,
 \]
-where $\mathcal{L}(\theta)$ is the likelihood and $\pi(\theta)$ is the prior. A higher evidence indicates a better balance between goodness-of-fit and model complexity.
+where $\mathcal{L}(\theta)$ is the likelihood and $\pi(\theta)$ is the prior. A greater evidence indicates a better balance between goodness-of-fit and model complexity.
 
-Nested sampling proceeds by drawing a set of live points from the prior and iteratively replacing the worst-fitting point with a better one, gradually focusing on regions of high likelihood. This allows both the evidence and the posterior to be estimated simultaneously.
+Nested sampling draws a set of live points from the prior and iteratively replaces the worst-fitting point with a better one, gradually focusing on regions of high likelihood. This allows both the evidence and the posterior to be estimated simultaneously.
 
-In our implementation, we used the \texttt{dynesty} library with 500 live points and the `rwalk` sampling method. The log-likelihood function was compiled using \texttt{jax.jit} for speed, and the prior transform was matched to the priors used in our Bayesian inference (e.g., normal priors for $N$ and $R$, log-normal priors for $\sigma_r$ and $\sigma_t$).
+In our implementation, we used the dynesty library with 500 live points and the `rwalk` sampling method. The log-likelihood function was compiled using \texttt{jax.jit} for speed, and the prior transform was matched to the priors used in our Bayesian inference.
 
 The resulting log-evidence estimates were:
 \[
@@ -451,16 +436,16 @@ The difference in log-evidence,
 \[
 \Delta \log Z = \log Z_{\text{aniso}} - \log Z_{\text{iso}} \approx 267.93,
 \]
-is overwhelmingly in favour of the anisotropic model. According to standard interpretive thresholds, a log-evidence difference greater than 10 is considered ``very strong'' evidence - above 100 is decisive evidence for the favourability of the Anisotropic model.
+is in favour of the anisotropic model: a log-evidence differenceabove 100 is decisive evidence for the favourability of the Anisotropic model.
 Together with the Savage-Dickey result, this confirms that the data clearly favour a model that allows for separate treatment of radial and tangential uncertainties.
 
 \section*{Conclusion}
 
-The anisotropic model consistently outperformed the isotropic model. Visually, it provided more accurate posterior predictive distributions for individual hole positions, capturing elliptical error structures consistent with physical intuition. Quantitatively, the Savage-Dickey ratio yielded a Bayes factor near zero in favour of the isotropic model, indicating negligible posterior mass at the isotropic subspace. Furthermore, nested sampling revealed a substantial log-evidence difference of $\Delta \log Z \approx 268$ in favour of the anisotropic model — decisively confirming its superiority.
+The anisotropic model consistently outperformed the isotropic model. It provided more accurate posterior predictive distributions for individual hole positions, capturing elliptical error structures consistent with physical intuition. Quantitatively, the Savage-Dickey ratio yielded a Bayes factor near zero in favour of the isotropic model. Furthermore, nested sampling revealed a substantial log-evidence difference of $\Delta \log Z \approx 268$ in favour of the anisotropic model.
 
-Beyond statistical performance, the anisotropic model offers a more realistic representation of the measurement process: while radial positions are relatively well constrained by the curvature of the ring, tangential positions are more susceptible to misalignment and fragment distortion. This physical insight is reflected in the recovered posterior: $\sigma_r < \sigma_t$ with high confidence.
+Beyond statistical performance, the anisotropic model offers a more realistic representation of the measurement process - while radial positions are relatively well constrained by the curvature of the ring, tangential positions are more susceptible to misalignment and fragment distortion. This is reflected in the recovered posterior: $\sigma_r < \sigma_t$ with high confidence.
 
-Taken together, our findings support a total hole count of approximately 355, consistent with a 354-day lunar calendar, and provide strong evidence that the measurement errors are direction-dependent. This highlights how carefully constructed statistical models — grounded in physical assumptions and evaluated through principled Bayesian methods — can yield valuable insights even from incomplete archaeological records.
+Taken together, our findings support a total hole count of approximately 355, consistent with a 354-day lunar calendar, and provide strong evidence that the radial and tangential errors differ.
 
 \bibliographystyle{unsrtnat}
 \bibliography{references}
@@ -535,16 +520,26 @@ y\_offsets[5]  & 136.16 & 0.87 & 136.17 & 134.75 & 137.60 & 248778.41 & 1.00 \\
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{nested_aniso.png}
-    \caption{Corner plot from nested sampling for the anisotropic model, showing marginal and joint posterior distributions of key parameters.}
+    \caption{Corner plot from nested sampling for the anisotropic model}
     \label{fig:nested_aniso}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{nested_iso.png}
-    \caption{Corner plot from nested sampling for the isotropic model, showing marginal and joint posterior distributions of $N$, $R$, and $\sigma$.}
+    \caption{Corner plot from nested sampling for the isotropic model}
     \label{fig:nested_iso}
 \end{figure}
+
+\section*{Declaration of Use of AI Tools}
+
+I declare that all ideas, methods, and approaches used in this project were conceived and developed independently through my own research, understanding and engagement with lecture and supervision material. The work presented here is entirely my own.
+
+The following AI tools were used for support purposes:
+\begin{itemize}
+    \item \textbf{ChatGPT:} Used to refine code snippets, assist with LaTeX formatting, and improve the clarity and structure. All content generated by this tool was critically evaluated and adapted.
+    \item \textbf{GitHub Copilot:} Used to suggest coding snippets and assist the implementation of functions. All suggested code was reviewed, modified, and tested.
+\end{itemize}
 
 
 \end{document}
