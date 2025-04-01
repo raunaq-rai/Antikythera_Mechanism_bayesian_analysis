@@ -7,4 +7,5 @@ corner==2.2.2
 numpyro==0.13.2
 scipy==1.12.0
 arviz==0.18.0
+dynesty==2.1.3
 
