@@ -28,7 +28,7 @@
 \author{Raunaq Rai (rsr45@cam.ac.uk)\\
     Data Intensive Science, Department of Physics, University of Cambridge
 }
-\date{04 April, 2025 \\ \vspace{0.2cm} {\small Word Count: 2982}}
+\date{04 April, 2025 \\ \vspace{0.2cm} {\small Word Count: 2962}}
 
 \begin{document}
 
@@ -38,7 +38,7 @@
 
 The Antikythera Mechanism is one of the most remarkable technological discoveries from the ancient world. Found in 1901 (by accident) in a shipwreck near the Greek island of Antikythera, the device dates back to between 140 and 60 BCE (perhaps another opportunity for bayesian inference). What makes it so extraordinary is its system of bronze gears, which could be manually turned to display a wide range of astronomical phenomena. Housed in a wooden box, the mechanism likely showed the positions of the Sun and Moon, lunar phases, eclipse predictions, and even events tied to the ancient Greek calendar such as the Olympic Games \cite{Seiradakis2018}.
 
-Thanks to X-ray tomography, researchers have reconstructed parts of the mechanism and gained a clearer picture of its workings. One key component is the calendar ring — a circular disk punctured with holes arranged around its edge. Only part of this ring survives, but it provides clues to the type of calendar the device may have used. While it was once thought to represent a 365-day solar calendar, new analysis suggests it may instead follow a 354-day lunar cycle \cite{Budiselic2021}.
+Researchers have reconstructed parts of the mechanism and gained a clearer picture of its workings. One key component is the calendar ring — a circular disk punctured with holes arranged around its edge. Only part of this ring survives, but it provides clues to the type of calendar the device may have used. While it was once thought to represent a 365-day solar calendar, analysis suggests it instead follows a 354-day lunar cycle \cite{Budiselic2021}.
 
 In this project, we use Bayesian Inference to infer how many holes the full ring originally contained. Using the known positions of 81 holes across eight broken and misaligned fragments, we apply Hamiltonian Monte Carlo Markov Chains to estimate the total number of holes. We use two models for positional uncertainty: one with isotropic Gaussian error, and one separating radial and tangential components\cite{Woan2024}. By comparing the results from both models, we aim to determine which best fits the data and what this can tell us about how the mechanism was designed and about the way time was measured in the ancient world.
 
@@ -63,7 +63,7 @@ The dataset~\cite{Thoeni2019} contains the $x$ and $y$ coordinates of 81 holes i
 
 \section{Hole Location model}
 
-Following the model described in Section 2 of Woan and Bayley~\cite{Woan2024}, we assume that the original calendar ring contained $N$ holes, evenly spaced around a circle of radius $r$. The full ring no longer survives, and the measured hole locations come from 8 fragmented sections. Each fragment is slightly misaligned due to relative translations and in-plane rotations.
+Following the model described in Section 2 of Woan and Bayley~\cite{Woan2024}, we assume that the original calendar ring contained $N$ holes, evenly spaced around a circle of radius $r$. Each fragment is slightly misaligned due to relative translations and in-plane rotations.
 
 \begin{equation}
     \vec{m}_i = 
@@ -163,8 +163,7 @@ We computed the gradient of the Log-Likelihood with respect to the model paramet
 \frac{\partial}{\partial \theta_\mu} \log L(\mathcal{D} \mid \boldsymbol{\theta})
 \end{equation}
 
-For the derivatives we used automatic differentiation via the jax library. The log-likelihood was implemented in a JAX-compatible format, which allowed for straightforward computation of the gradient and Hessian. Automatic differentiation works by applying the chain rule systematically (as shown in the previous Research Computing C1 coursework) to the sequence of operations used to evaluate the function, allowing exact derivatives to be computed efficiently and accurately.
-
+For the derivatives we used automatic differentiation via the jax library. The log-likelihood was implemented in a JAX-compatible format, which allowed for straightforward computation of the gradient and Hessian via automatic differentiation.
 
 To ensure the correctness of the computed gradients, we also implemented a finite difference approximation using central differences:
 
@@ -189,11 +188,9 @@ The relative differences were found to be negligible, confirming the accuracy of
 
 \section{Maximum Likelihood Estimation}
 
-To estimate the best-fitting model parameters, we performed maximum likelihood estimation (MLE) for both the isotropic and anisotropic covariance models. Sections 0 and 4, which each contained only a single hole, were excluded.
+To estimate the best-fitting model parameters, we performed maximum likelihood estimation (MLE) for both the isotropic and anisotropic covariance models. Sections 0 and 4, which each contained only a single hole, were excluded for all subsequent analysis.
 
-We used the L-BFGS-B optimisation algorithm \cite{liu1989lbfgs} to maximise the log-likelihood function, with gradients computed via automatic differentiation using jax. Optimisation was carried out on the negative log-likelihood.
-
-The parameter ordering is shown in Table~\ref{tab:anisotropic-params}.
+We used the L-BFGS-B optimisation algorithm \cite{liu1989lbfgs} to maximise the log-likelihood function, with gradients computed via automatic differentiation using jax.
 
 \begin{table}[H]
 \centering
@@ -215,7 +212,7 @@ The parameter ordering is shown in Table~\ref{tab:anisotropic-params}.
 \label{tab:anisotropic-params}
 \end{table}
 
-Initialisation values were based on the values presented by Woan and Bayley\cite{Woan2024} with small perturbations added. Parameter bounds were applied to ensure physical validity (e.g., $N > 0$, $\sigma > 0$).
+Initialisation values were based on the values presented by Woan and Bayley\cite{Woan2024} with small perturbations added. Parameter bounds were also applied ensuring physical validity.
 
 The optimiser returned the following result:
 
@@ -232,7 +229,7 @@ Maximised Log-Likelihood: 230.67
   1.35837969e+02  1.36401869e+02]
     \end{verbatim}
     
-Using these parameters, we predicted the expected hole positions for each section and overlaid them on the measured hole locations (Figure~\ref{fig:MLE_plot}). To reduce clutter, the predicted points were vertically shifted by 10~mm and arrows were added from the shifted locations to their true positions. The same process was repeated for the isotropic model.
+Using these parameters, we predicted the expected hole positions for each section and overlaid them on the measured hole locations (Figure~\ref{fig:MLE_plot}). To reduce clutter, the predicted points were vertically shifted by 10~mm and arrows were added.
   
 \begin{figure}[H]
     \centering
@@ -274,7 +271,7 @@ Comparing the two models, the anisotropic version achieved a higher maximised lo
 
 We performed Bayesian inference using Hamiltonian Monte Carlo (HMC) sampling\cite{hmc}. This allowed us to estimate the full posterior distributions of the model parameters, incorporating prior knowledge and the observed data. 
 
-HMC works by simulating a particle moving through the parameter space under a fictional physical system, using gradients of the log-posterior to propose distant, high-probability samples efficiently and with reduced random walk behaviour compared to traditional MCMC methods.
+HMC simulates a particle moving through the parameter space under a fictional physical system, using gradients of the log-posterior to propose distant, high-probability samples efficiently.
 
 The priors were informed by previous literature, physical considerations and the hypothesis that the mechanism tracks a lunar calendar. These priors are summarised below and visualised in Figure~\ref{fig:priors_plot}:
 
@@ -304,19 +301,51 @@ The priors were informed by previous literature, physical considerations and the
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{priors.png}
-    \caption{Visualisation of the prior distributions for the model parameters. Each subplot corresponds to one of the priors described above.}
+    \caption{Prior distributions for model parameters.}
     \label{fig:priors_plot}
 \end{figure}
 
-Posterior sampling was performed using the No-U-Turn Sampler~\cite{hoffman2011nouturnsampleradaptivelysetting}, a variant of HMC known for its efficiency in high-dimensional spaces. We used 12 parallel chains (corresponding to the number of CPU cores on my machine), each with 10,000 warmup steps and 50,000 sampling steps. Initialisation was done via the 'init\_to\_median' strategy which initialises each parameter based on the median of its prior distribution. This provides a stable and reasonable starting point for the sampler helping ensure faster convergence during warm-up, particularly useful in high-dimensional spaces.
+Posterior sampling was performed using the No-U-Turn Sampler~\cite{hoffman2011nouturnsampleradaptivelysetting}, a variant of HMC known for its efficiency in high-dimensional spaces. We used 12 parallel chains (corresponding to the number of CPU cores on my machine), each with 10,000 warmup steps and 50,000 sampling steps. Initialisation was done via the 'init\_to\_median' strategy which initialises each parameter based on the median of its prior distribution. This provides a stable and reasonable starting point.
 
 \subsection*{Anisotropic Model Results}
 
-For the anisotropic model, trace plots for key parameters (Figure~\ref{fig:traceplot_aniso}) show good mixing and convergence across all chains, with minimal autocorrelation. The posterior distributions and joint correlations between parameters are shown in the corner plot in Figure~\ref{fig:cornerplot_aniso}. Detailed estimates and statistics from this model are shown in the appendix in Table \ref{tab:posterior_summary_aniso}.
+For the anisotropic model, trace plots for key parameters (Figure~\ref{fig:traceplot_aniso}) show good mixing and convergence across all chains, with minimal autocorrelation. The posterior distributions and joint correlations between parameters are shown in the corner plot in Figure~\ref{fig:cornerplot_aniso}. Detailed estimates and statistics from this model are shown in Table \ref{tab:posterior_summary_aniso}.
+
+\begin{longtable}{lrrrrrrr}
+    \toprule
+    \textbf{Parameter} & \textbf{Mean} & \textbf{Std} & \textbf{Median} & \textbf{5\%} & \textbf{95\%} & \textbf{n\_eff} & \textbf{$\hat{R}$} \\
+    \midrule
+    N              & 355.10 & 1.27 & 355.10 & 352.98 & 357.17 & 150089.40 & 1.00 \\
+    R              & 77.31 & 0.26 & 77.31 & 76.89 & 77.74 & 140073.39 & 1.00 \\
+    phases[0]      & -2.53 & 0.00 & -2.53 & -2.53 & -2.52 & 266995.91 & 1.00 \\
+    phases[1]      & -2.14 & 0.00 & -2.14 & -2.14 & -2.13 & 549871.36 & 1.00 \\
+    phases[2]      & -1.97 & 0.00 & -1.97 & -1.98 & -1.97 & 169830.53 & 1.00 \\
+    phases[3]      & -1.32 & 0.01 & -1.32 & -1.35 & -1.30 & 407464.84 & 1.00 \\
+    phases[4]      & -1.26 & 0.03 & -1.26 & -1.31 & -1.21 & 376666.94 & 1.00 \\
+    phases[5]      & -1.25 & 0.01 & -1.25 & -1.26 & -1.24 & 488787.59 & 1.00 \\
+    $\sigma_r$     & 0.03 & 0.00 & 0.03 & 0.02 & 0.03 & 566747.07 & 1.00 \\
+    $\sigma_t$     & 0.13 & 0.01 & 0.13 & 0.11 & 0.15 & 624075.38 & 1.00 \\
+    x\_offsets[0]  & 79.67 & 0.19 & 79.67 & 79.36 & 79.97 & 146941.56 & 1.00 \\
+    x\_offsets[1]  & 79.90 & 0.22 & 79.90 & 79.54 & 80.27 & 287612.22 & 1.00 \\
+    x\_offsets[2]  & 79.86 & 0.03 & 79.86 & 79.80 & 79.91 & 242810.23 & 1.00 \\
+    x\_offsets[3]  & 81.44 & 1.08 & 81.44 & 79.69 & 83.23 & 411059.14 & 1.00 \\
+    x\_offsets[4]  & 81.51 & 2.16 & 81.50 & 77.97 & 85.07 & 378157.08 & 1.00 \\
+    x\_offsets[5]  & 83.22 & 0.38 & 83.22 & 82.59 & 83.85 & 443628.60 & 1.00 \\
+    y\_offsets[0]  & 136.01 & 0.19 & 136.01 & 135.70 & 136.33 & 142977.35 & 1.00 \\
+    y\_offsets[1]  & 135.69 & 0.25 & 135.69 & 135.28 & 136.10 & 159439.48 & 1.00 \\
+    y\_offsets[2]  & 135.68 & 0.26 & 135.68 & 135.25 & 136.12 & 140196.16 & 1.00 \\
+    y\_offsets[3]  & 136.07 & 0.39 & 136.07 & 135.44 & 136.71 & 210488.10 & 1.00 \\
+    y\_offsets[4]  & 135.78 & 0.75 & 135.81 & 134.57 & 137.03 & 303370.16 & 1.00 \\
+    y\_offsets[5]  & 136.39 & 0.28 & 136.39 & 135.93 & 136.85 & 167609.76 & 1.00 \\
+    \caption{Posterior summary statistics for the anisotropic model parameters.}
+    \label{tab:posterior_summary_aniso}
+    \end{longtable}
+
+    Table~\ref{tab:posterior_summary_aniso} shows that the total number of holes is tightly constrained at $355.10 \pm 1.27$ with a 90\% credible interval of [352.98, 357.17], consistent with a 354-day lunar calendar. The ring radius $R$ also shows low uncertainty. The noteable difference between the radial and tangential errors will be discussed later.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{traceplot_aniso.png}
+    \includegraphics[width=0.8\textwidth]{traceplot_aniso.png}
     \caption{Trace plots for the anisotropic model across all 12 chains}
     \label{fig:traceplot_aniso}
 \end{figure}
@@ -330,11 +359,45 @@ For the anisotropic model, trace plots for key parameters (Figure~\ref{fig:trace
 
 \subsection*{Isotropic Model Results}
 
-The isotropic model was fit using the same MCMC settings. The trace plots (Figure~\ref{fig:traceplot_iso}) again demonstrate good convergence, and the corresponding corner plot (Figure~\ref{fig:cornerplot_iso}) summarises the posterior distributions and joint parameter behaviour. Detailed estimates and statistics from this model are shown in the appendix in Table \ref{tab:posterior_summary_iso}.
+The isotropic model was fit using the same MCMC settings. The trace plots (Figure~\ref{fig:traceplot_iso}) again demonstrate good convergence, and the corresponding corner plot (Figure~\ref{fig:cornerplot_iso}) summarises the posterior distributions and joint parameter behaviour. Detailed estimates and statistics from this model are shown in Table \ref{tab:posterior_summary_iso}.
+
+\begin{longtable}{lrrrrrrr}
+    \toprule
+    \textbf{Parameter} & \textbf{Mean} & \textbf{Std} & \textbf{Median} & \textbf{5\%} & \textbf{95\%} & \textbf{n\_eff} & \textbf{$\hat{R}$} \\
+    \midrule
+    N              & 354.50 & 2.79 & 354.50 & 349.91 & 359.11 & 189887.40 & 1.00 \\
+    R              & 77.18 & 0.61 & 77.18 & 76.17 & 78.17 & 187735.89 & 1.00 \\
+    phases[0]      & -2.53 & 0.00 & -2.53 & -2.53 & -2.52 & 437517.22 & 1.00 \\
+    phases[1]      & -2.14 & 0.01 & -2.14 & -2.16 & -2.11 & 387101.74 & 1.00 \\
+    phases[2]      & -1.97 & 0.00 & -1.97 & -1.98 & -1.97 & 236700.53 & 1.00 \\
+    phases[3]      & -1.32 & 0.05 & -1.32 & -1.40 & -1.24 & 357285.89 & 1.00 \\
+    phases[4]      & -1.26 & 0.06 & -1.26 & -1.36 & -1.16 & 339319.30 & 1.00 \\
+    phases[5]      & -1.25 & 0.02 & -1.25 & -1.29 & -1.21 & 377427.05 & 1.00 \\
+    $\sigma$       & 0.14 & 0.01 & 0.14 & 0.12 & 0.16 & 448359.76 & 1.00 \\
+    x\_offsets[0]  & 79.57 & 0.47 & 79.57 & 78.80 & 80.34 & 221776.87 & 1.00 \\
+    x\_offsets[1]  & 79.86 & 0.95 & 79.86 & 78.31 & 81.42 & 366747.92 & 1.00 \\
+    x\_offsets[2]  & 79.85 & 0.14 & 79.85 & 79.63 & 80.08 & 481017.58 & 1.00 \\
+    x\_offsets[3]  & 81.46 & 3.62 & 81.44 & 75.50 & 87.41 & 359572.52 & 1.00 \\
+    x\_offsets[4]  & 81.53 & 4.35 & 81.49 & 74.44 & 88.78 & 341364.77 & 1.00 \\
+    x\_offsets[5]  & 83.04 & 1.72 & 83.04 & 80.18 & 85.83 & 378210.55 & 1.00 \\
+    y\_offsets[0]  & 135.94 & 0.48 & 135.94 & 135.16 & 136.73 & 203864.59 & 1.00 \\
+    y\_offsets[1]  & 135.55 & 0.72 & 135.55 & 134.37 & 136.75 & 235688.08 & 1.00 \\
+    y\_offsets[2]  & 135.54 & 0.62 & 135.54 & 134.52 & 136.55 & 187794.31 & 1.00 \\
+    y\_offsets[3]  & 135.85 & 1.16 & 135.91 & 133.99 & 137.77 & 269183.78 & 1.00 \\
+    y\_offsets[4]  & 135.54 & 1.55 & 135.65 & 133.05 & 138.09 & 288180.62 & 1.00 \\
+    y\_offsets[5]  & 136.16 & 0.87 & 136.17 & 134.75 & 137.60 & 248778.41 & 1.00 \\
+    \caption{Posterior summary statistics for the isotropic model parameters.}
+    \label{tab:posterior_summary_iso}
+    \end{longtable}
+
+
+    Table~\ref{tab:posterior_summary_iso} shows that the inferred total number of holes is $354.50 \pm 2.79$, with wider uncertainty than the anisotropic case, though still broadly consistent with a lunar calendar. The radius estimate is noteably less precise.
+
+    The shared uncertainty parameter $\sigma = 0.14 \pm 0.01$~mm reflects the model's assumption of equal error in all directions. Compared to the anisotropic model, posterior uncertainties are generally larger, reflecting a poorer overall fit. Nonetheless, all parameters demonstrate strong convergence and effective sampling.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{traceplot_iso.png}
+    \includegraphics[width=0.8\textwidth]{traceplot_iso.png}
     \caption{Trace plots for the isotropic model parameters across 12 chains.}
     \label{fig:traceplot_iso}
 \end{figure}
@@ -424,9 +487,7 @@ The evidence for a model $\mathcal{M}$ is defined as:
 \]
 where $\mathcal{L}(\theta)$ is the likelihood and $\pi(\theta)$ is the prior. A greater evidence indicates a better balance between goodness-of-fit and model complexity.
 
-Nested sampling draws a set of live points from the prior and iteratively replaces the worst-fitting point with a better one, gradually focusing on regions of high likelihood. This allows both the evidence and the posterior to be estimated simultaneously.
-
-In our implementation, we used the dynesty library with 500 live points and the `rwalk` sampling method. The log-likelihood function was compiled using \texttt{jax.jit} for speed, and the prior transform was matched to the priors used in our Bayesian inference.
+In our implementation, we used the dynesty library with 500 live points and the `rwalk` sampling method. The log-likelihood function was compiled using \texttt{jax.jit} for speed, and the prior transform was matched to the priors used in our Bayesian inference. Corner plots for these are shown in the appendix in Figures \ref{fig:nested_aniso} and \ref{fig:nested_iso}.
 
 The resulting log-evidence estimates were:
 \[
@@ -452,71 +513,6 @@ In summary, our Anisotropic HMC analysis yields a total hole count of $355.1 \pm
 
 \clearpage
 \appendix
-\section*{Appendix: Posterior Summary of Model Parameters}
-
-\subsection*{Anisotropic Model Posterior Summary}
-
-\begin{longtable}{lrrrrrrr}
-\toprule
-\textbf{Parameter} & \textbf{Mean} & \textbf{Std} & \textbf{Median} & \textbf{5\%} & \textbf{95\%} & \textbf{n\_eff} & \textbf{$\hat{R}$} \\
-\midrule
-N              & 355.10 & 1.27 & 355.10 & 352.98 & 357.17 & 150089.40 & 1.00 \\
-R              & 77.31 & 0.26 & 77.31 & 76.89 & 77.74 & 140073.39 & 1.00 \\
-phases[0]      & -2.53 & 0.00 & -2.53 & -2.53 & -2.52 & 266995.91 & 1.00 \\
-phases[1]      & -2.14 & 0.00 & -2.14 & -2.14 & -2.13 & 549871.36 & 1.00 \\
-phases[2]      & -1.97 & 0.00 & -1.97 & -1.98 & -1.97 & 169830.53 & 1.00 \\
-phases[3]      & -1.32 & 0.01 & -1.32 & -1.35 & -1.30 & 407464.84 & 1.00 \\
-phases[4]      & -1.26 & 0.03 & -1.26 & -1.31 & -1.21 & 376666.94 & 1.00 \\
-phases[5]      & -1.25 & 0.01 & -1.25 & -1.26 & -1.24 & 488787.59 & 1.00 \\
-$\sigma_r$     & 0.03 & 0.00 & 0.03 & 0.02 & 0.03 & 566747.07 & 1.00 \\
-$\sigma_t$     & 0.13 & 0.01 & 0.13 & 0.11 & 0.15 & 624075.38 & 1.00 \\
-x\_offsets[0]  & 79.67 & 0.19 & 79.67 & 79.36 & 79.97 & 146941.56 & 1.00 \\
-x\_offsets[1]  & 79.90 & 0.22 & 79.90 & 79.54 & 80.27 & 287612.22 & 1.00 \\
-x\_offsets[2]  & 79.86 & 0.03 & 79.86 & 79.80 & 79.91 & 242810.23 & 1.00 \\
-x\_offsets[3]  & 81.44 & 1.08 & 81.44 & 79.69 & 83.23 & 411059.14 & 1.00 \\
-x\_offsets[4]  & 81.51 & 2.16 & 81.50 & 77.97 & 85.07 & 378157.08 & 1.00 \\
-x\_offsets[5]  & 83.22 & 0.38 & 83.22 & 82.59 & 83.85 & 443628.60 & 1.00 \\
-y\_offsets[0]  & 136.01 & 0.19 & 136.01 & 135.70 & 136.33 & 142977.35 & 1.00 \\
-y\_offsets[1]  & 135.69 & 0.25 & 135.69 & 135.28 & 136.10 & 159439.48 & 1.00 \\
-y\_offsets[2]  & 135.68 & 0.26 & 135.68 & 135.25 & 136.12 & 140196.16 & 1.00 \\
-y\_offsets[3]  & 136.07 & 0.39 & 136.07 & 135.44 & 136.71 & 210488.10 & 1.00 \\
-y\_offsets[4]  & 135.78 & 0.75 & 135.81 & 134.57 & 137.03 & 303370.16 & 1.00 \\
-y\_offsets[5]  & 136.39 & 0.28 & 136.39 & 135.93 & 136.85 & 167609.76 & 1.00 \\
-\caption{Posterior summary statistics for the anisotropic model parameters.}
-\label{tab:posterior_summary_aniso}
-\end{longtable}
-
-\subsection*{Isotropic Model Posterior Summary}
-
-\begin{longtable}{lrrrrrrr}
-\toprule
-\textbf{Parameter} & \textbf{Mean} & \textbf{Std} & \textbf{Median} & \textbf{5\%} & \textbf{95\%} & \textbf{n\_eff} & \textbf{$\hat{R}$} \\
-\midrule
-N              & 354.50 & 2.79 & 354.50 & 349.91 & 359.11 & 189887.40 & 1.00 \\
-R              & 77.18 & 0.61 & 77.18 & 76.17 & 78.17 & 187735.89 & 1.00 \\
-phases[0]      & -2.53 & 0.00 & -2.53 & -2.53 & -2.52 & 437517.22 & 1.00 \\
-phases[1]      & -2.14 & 0.01 & -2.14 & -2.16 & -2.11 & 387101.74 & 1.00 \\
-phases[2]      & -1.97 & 0.00 & -1.97 & -1.98 & -1.97 & 236700.53 & 1.00 \\
-phases[3]      & -1.32 & 0.05 & -1.32 & -1.40 & -1.24 & 357285.89 & 1.00 \\
-phases[4]      & -1.26 & 0.06 & -1.26 & -1.36 & -1.16 & 339319.30 & 1.00 \\
-phases[5]      & -1.25 & 0.02 & -1.25 & -1.29 & -1.21 & 377427.05 & 1.00 \\
-$\sigma$       & 0.14 & 0.01 & 0.14 & 0.12 & 0.16 & 448359.76 & 1.00 \\
-x\_offsets[0]  & 79.57 & 0.47 & 79.57 & 78.80 & 80.34 & 221776.87 & 1.00 \\
-x\_offsets[1]  & 79.86 & 0.95 & 79.86 & 78.31 & 81.42 & 366747.92 & 1.00 \\
-x\_offsets[2]  & 79.85 & 0.14 & 79.85 & 79.63 & 80.08 & 481017.58 & 1.00 \\
-x\_offsets[3]  & 81.46 & 3.62 & 81.44 & 75.50 & 87.41 & 359572.52 & 1.00 \\
-x\_offsets[4]  & 81.53 & 4.35 & 81.49 & 74.44 & 88.78 & 341364.77 & 1.00 \\
-x\_offsets[5]  & 83.04 & 1.72 & 83.04 & 80.18 & 85.83 & 378210.55 & 1.00 \\
-y\_offsets[0]  & 135.94 & 0.48 & 135.94 & 135.16 & 136.73 & 203864.59 & 1.00 \\
-y\_offsets[1]  & 135.55 & 0.72 & 135.55 & 134.37 & 136.75 & 235688.08 & 1.00 \\
-y\_offsets[2]  & 135.54 & 0.62 & 135.54 & 134.52 & 136.55 & 187794.31 & 1.00 \\
-y\_offsets[3]  & 135.85 & 1.16 & 135.91 & 133.99 & 137.77 & 269183.78 & 1.00 \\
-y\_offsets[4]  & 135.54 & 1.55 & 135.65 & 133.05 & 138.09 & 288180.62 & 1.00 \\
-y\_offsets[5]  & 136.16 & 0.87 & 136.17 & 134.75 & 137.60 & 248778.41 & 1.00 \\
-\bottomrule
-\caption{Posterior summary statistics for the isotropic model parameters.}
-\label{tab:posterior_summary_iso}
-\end{longtable}
 
 \section*{Corner Plots from Nested Sampling}
 
