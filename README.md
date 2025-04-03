@@ -27,6 +27,6 @@ conda:
 conda env create -f environment.yaml
 conda activate s2_coursework
 python -m ipykernel install --user --name=s2_coursework --display-name "Python (S2 Coursework)"
-'''
+```
 
 
