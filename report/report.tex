@@ -157,7 +157,7 @@ Both error models were implemented in NumPy and JAX.
 
 \section{Derivatives of Log-Likelihood}
 
-We computed its gradient with respect to the model parameters $\theta_\mu$:
+We computed the gradient of the Log-Likelihood with respect to the model parameters $\theta_\mu$:
 
 \begin{equation}
 \frac{\partial}{\partial \theta_\mu} \log L(\mathcal{D} \mid \boldsymbol{\theta})
@@ -172,7 +172,7 @@ To ensure the correctness of the computed gradients, we also implemented a finit
 \frac{\partial \log L}{\partial \theta_\mu} \approx \frac{\log L(\theta_\mu + \epsilon) - \log L(\theta_\mu - \epsilon)}{2\epsilon}
 \end{equation}
 
-This was compared against the JAX gradients for all parameters. We evaluated both methods at a set of arbitrary parameter values that we selected manually. This allowed us to verify that the automatic differentiation mechanism worked correctly.
+This was compared against the JAX gradients for all parameters. We evaluated both methods at a set of arbitrary parameter values that we selected manually. This allowed us to verify that the automatic differentiation mechanism worked correctly.  As an additional check, we computed both forward-mode and reverse-mode gradients using jax's functions, and confirmed consistency across modes.
 
 \begin{equation}
 \text{Relative Difference} = \frac{|\nabla_{\text{JAX}} - \nabla_{\text{FD}}|}{|\nabla_{\text{FD}}| + \epsilon}
@@ -191,7 +191,7 @@ The relative differences were found to be negligible, confirming the accuracy of
 
 To estimate the best-fitting model parameters, we performed maximum likelihood estimation (MLE) for both the isotropic and anisotropic covariance models. Sections 0 and 4, which each contained only a single hole, were excluded.
 
-We used the \texttt{L-BFGS-B} optimisation algorithm \cite{liu1989lbfgs} to maximise the log-likelihood function, with gradients computed via automatic differentiation using \texttt{jax}. Optimisation was carried out on the negative log-likelihood.
+We used the L-BFGS-B optimisation algorithm \cite{liu1989lbfgs} to maximise the log-likelihood function, with gradients computed via automatic differentiation using jax. Optimisation was carried out on the negative log-likelihood.
 
 The parameter ordering is shown in Table~\ref{tab:anisotropic-params}.
 
@@ -215,7 +215,7 @@ The parameter ordering is shown in Table~\ref{tab:anisotropic-params}.
 \label{tab:anisotropic-params}
 \end{table}
 
-Initial values were based on dataset medians with small perturbations added to avoid local minima. Parameter bounds were applied to ensure physical validity (e.g., $N > 0$, $\sigma > 0$).
+Initialisation values were based on the values presented by Woan and Bayley\cite{Woan2024} with small perturbations added. Parameter bounds were applied to ensure physical validity (e.g., $N > 0$, $\sigma > 0$).
 
 The optimiser returned the following result:
 
@@ -232,8 +232,6 @@ Maximised Log-Likelihood: 230.67
   1.35837969e+02  1.36401869e+02]
     \end{verbatim}
     
-
-
 Using these parameters, we predicted the expected hole positions for each section and overlaid them on the measured hole locations (Figure~\ref{fig:MLE_plot}). To reduce clutter, the predicted points were vertically shifted by 10~mm and arrows were added from the shifted locations to their true positions. The same process was repeated for the isotropic model.
   
 \begin{figure}[H]
@@ -274,7 +272,9 @@ Comparing the two models, the anisotropic version achieved a higher maximised lo
 
 \section{Bayesian Inference and Posterior Sampling}
 
-We performed Bayesian inference using Hamiltonian Monte Carlo (HMC) sampling. This allowed us to estimate the full posterior distributions of the model parameters, incorporating prior knowledge and the observed data.
+We performed Bayesian inference using Hamiltonian Monte Carlo (HMC) sampling\cite{hmc}. This allowed us to estimate the full posterior distributions of the model parameters, incorporating prior knowledge and the observed data. 
+
+HMC works by simulating a particle moving through the parameter space under a fictional physical system, using gradients of the log-posterior to propose distant, high-probability samples efficiently and with reduced random walk behaviour compared to traditional MCMC methods.
 
 The priors were informed by previous literature, physical considerations and the hypothesis that the mechanism tracks a lunar calendar. These priors are summarised below and visualised in Figure~\ref{fig:priors_plot}:
 
@@ -292,7 +292,7 @@ The priors were informed by previous literature, physical considerations and the
             \sigma \sim \text{LogNormal}(\log(0.13), 0.45).
             \]
         \end{itemize}
-    \item Section-specific parameters: angular offsets $\phi_j$, and spatial offsets $x_j$, $y_j$. Again, these were chosen to align with our MLE results as well as results published by Woan and Bayley~\cite{Woan2024}. These were given a large standard deviation to allow our HMC to explore a broad parameter space looking at within-section misalignments and minor translational shifts between fractured segments:
+    \item Section-specific parameters: angular offsets $\phi_j$, and spatial offsets $x_j$, $y_j$. Were chosen to align with our MLE results as well as results published by Woan and Bayley~\cite{Woan2024}. These were given a large standard deviation to allow our HMC to explore a broad parameter space looking at within-section misalignments and minor translational shifts between fractured segments:
 
     \[
     \phi_j \sim \mathcal{N}(-2.5, 0.5), \quad x_j \sim \mathcal{N}(80, 5), \quad y_j \sim \mathcal{N}(135, 5).
@@ -308,11 +308,11 @@ The priors were informed by previous literature, physical considerations and the
     \label{fig:priors_plot}
 \end{figure}
 
-Posterior sampling was performed using the No-U-Turn Sampler (NUTS)~\cite{hoffman2011nouturnsampleradaptivelysetting}, a variant of HMC known for its efficiency in high-dimensional spaces. We used 12 parallel chains (corresponding to the number of CPU cores on my machine), each with 10,000 warmup steps and 50,000 sampling steps. Initialisation was done via the \texttt{init\_to\_median} strategy.
+Posterior sampling was performed using the No-U-Turn Sampler~\cite{hoffman2011nouturnsampleradaptivelysetting}, a variant of HMC known for its efficiency in high-dimensional spaces. We used 12 parallel chains (corresponding to the number of CPU cores on my machine), each with 10,000 warmup steps and 50,000 sampling steps. Initialisation was done via the 'init\_to\_median' strategy which initialises each parameter based on the median of its prior distribution. This provides a stable and reasonable starting point for the sampler helping ensure faster convergence during warm-up, particularly useful in high-dimensional spaces.
 
 \subsection*{Anisotropic Model Results}
 
-For the anisotropic model, trace plots for key parameters (Figure~\ref{fig:traceplot_aniso}) show good mixing and convergence across all chains, with minimal autocorrelation. The posterior distributions and joint correlations between parameters are shown in the corner plot in Figure~\ref{fig:cornerplot_aniso}.
+For the anisotropic model, trace plots for key parameters (Figure~\ref{fig:traceplot_aniso}) show good mixing and convergence across all chains, with minimal autocorrelation. The posterior distributions and joint correlations between parameters are shown in the corner plot in Figure~\ref{fig:cornerplot_aniso}. Detailed estimates and statistics from this model are shown in the appendix in Table \ref{tab:posterior_summary_aniso}.
 
 \begin{figure}[H]
     \centering
@@ -330,7 +330,7 @@ For the anisotropic model, trace plots for key parameters (Figure~\ref{fig:trace
 
 \subsection*{Isotropic Model Results}
 
-The isotropic model was fit using the same MCMC settings. The trace plots (Figure~\ref{fig:traceplot_iso}) again demonstrate good convergence, and the corresponding corner plot (Figure~\ref{fig:cornerplot_iso}) summarises the posterior distributions and joint parameter behaviour.
+The isotropic model was fit using the same MCMC settings. The trace plots (Figure~\ref{fig:traceplot_iso}) again demonstrate good convergence, and the corresponding corner plot (Figure~\ref{fig:cornerplot_iso}) summarises the posterior distributions and joint parameter behaviour. Detailed estimates and statistics from this model are shown in the appendix in Table \ref{tab:posterior_summary_iso}.
 
 \begin{figure}[H]
     \centering
@@ -430,11 +430,11 @@ In our implementation, we used the dynesty library with 500 live points and the 
 
 The resulting log-evidence estimates were:
 \[
-\log Z_{\text{aniso}} = 126.13 \pm 0.70, \quad \log Z_{\text{iso}} = -141.80 \pm 0.71.
+\log Z_{\text{aniso}} = 126.75 \pm 0.72, \quad \log Z_{\text{iso}} = -111.94 \pm 0.65.
 \]
 The difference in log-evidence,
 \[
-\Delta \log Z = \log Z_{\text{aniso}} - \log Z_{\text{iso}} \approx 267.93,
+\Delta \log Z = \log Z_{\text{aniso}} - \log Z_{\text{iso}} = 238.69 \pm 0.97,
 \]
 is in favour of the anisotropic model: a log-evidence differenceabove 100 is decisive evidence for the favourability of the Anisotropic model.
 Together with the Savage-Dickey result, this confirms that the data clearly favour a model that allows for separate treatment of radial and tangential uncertainties.
@@ -445,7 +445,7 @@ The anisotropic model consistently outperformed the isotropic model. It provided
 
 Beyond statistical performance, the anisotropic model offers a more realistic representation of the measurement process - while radial positions are relatively well constrained by the curvature of the ring, tangential positions are more susceptible to misalignment and fragment distortion. This is reflected in the recovered posterior: $\sigma_r < \sigma_t$ with high confidence.
 
-Taken together, our findings support a total hole count of approximately 355, consistent with a 354-day lunar calendar, and provide strong evidence that the radial and tangential errors differ.
+In summary, our Anisotropic HMC analysis yields a total hole count of $355.1 \pm 1.26$, with a 90\% credible interval ranging from 352.98 to 357.16 which is consistent with a 354-day lunar calendar.
 
 \bibliographystyle{unsrtnat}
 \bibliography{references}
@@ -482,7 +482,8 @@ y\_offsets[2]  & 135.68 & 0.26 & 135.68 & 135.25 & 136.12 & 140196.16 & 1.00 \\
 y\_offsets[3]  & 136.07 & 0.39 & 136.07 & 135.44 & 136.71 & 210488.10 & 1.00 \\
 y\_offsets[4]  & 135.78 & 0.75 & 135.81 & 134.57 & 137.03 & 303370.16 & 1.00 \\
 y\_offsets[5]  & 136.39 & 0.28 & 136.39 & 135.93 & 136.85 & 167609.76 & 1.00 \\
-\bottomrule
+\caption{Posterior summary statistics for the anisotropic model parameters.}
+\label{tab:posterior_summary_aniso}
 \end{longtable}
 
 \subsection*{Isotropic Model Posterior Summary}
@@ -513,6 +514,8 @@ y\_offsets[3]  & 135.85 & 1.16 & 135.91 & 133.99 & 137.77 & 269183.78 & 1.00 \\
 y\_offsets[4]  & 135.54 & 1.55 & 135.65 & 133.05 & 138.09 & 288180.62 & 1.00 \\
 y\_offsets[5]  & 136.16 & 0.87 & 136.17 & 134.75 & 137.60 & 248778.41 & 1.00 \\
 \bottomrule
+\caption{Posterior summary statistics for the isotropic model parameters.}
+\label{tab:posterior_summary_iso}
 \end{longtable}
 
 \section*{Corner Plots from Nested Sampling}
