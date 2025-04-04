@@ -28,7 +28,7 @@
 \author{Raunaq Rai (rsr45@cam.ac.uk)\\
     Data Intensive Science, Department of Physics, University of Cambridge
 }
-\date{04 April, 2025 \\ \vspace{0.2cm} {\small Word Count: 2962}}
+\date{04 April, 2025 \\ \vspace{0.2cm} {\small Word Count: 2991}}
 
 \begin{document}
 
@@ -40,7 +40,7 @@ The Antikythera Mechanism is one of the most remarkable technological discoverie
 
 Researchers have reconstructed parts of the mechanism and gained a clearer picture of its workings. One key component is the calendar ring — a circular disk punctured with holes arranged around its edge. Only part of this ring survives, but it provides clues to the type of calendar the device may have used. While it was once thought to represent a 365-day solar calendar, analysis suggests it instead follows a 354-day lunar cycle \cite{Budiselic2021}.
 
-In this project, we use Bayesian Inference to infer how many holes the full ring originally contained. Using the known positions of 81 holes across eight broken and misaligned fragments, we apply Hamiltonian Monte Carlo Markov Chains to estimate the total number of holes. We use two models for positional uncertainty: one with isotropic Gaussian error, and one separating radial and tangential components\cite{Woan2024}. By comparing the results from both models, we aim to determine which best fits the data and what this can tell us about how the mechanism was designed and about the way time was measured in the ancient world.
+In this project, we use Bayesian Inference to infer how many holes the full ring originally contained. Using the known positions of 81 holes across eight broken and misaligned fragments, we apply Hamiltonian Monte Carlo to estimate the total number of holes. We use two models for positional uncertainty: one with isotropic Gaussian error, and one separating radial and tangential components\cite{Woan2024}. By comparing the results from both models, we aim to determine which best fits the data and what this can tell us about how the mechanism was designed and about the way time was measured in the ancient world.
 
 \begin{figure}[t!]
     \centering
@@ -50,14 +50,14 @@ In this project, we use Bayesian Inference to infer how many holes the full ring
     \label{fig:xray}
 \end{figure}
 
-\section{Measured Hole Locations $d_i \in \mathbb{R}^2$ in the $x$-$y$ Plane}
+\section{Measured Hole Locations}
 
 The dataset~\cite{Thoeni2019} contains the $x$ and $y$ coordinates of 81 holes in the surviving fragments of the calendar ring. These holes are distributed across eight fragments, each of which is colour-coded in Figure~\ref{fig:parta}.
 
 \begin{figure}[t!]
     \centering
     \includegraphics[width=0.85\textwidth]{part_a.png}
-    \caption{Measured hole locations $d_i \in \mathbb{R}^2$ in the $x$-$y$ plane, colour-coded by fractured ring segment. The dashed circle shows the estimated full ring, fitted to the data using a non-linear least-squares method. Section labels are placed to minimise overlap and connected to the median point of each segment.}
+    \caption{Measured hole locations $d_i \in \mathbb{R}^2$ in the $x$-$y$ plane, colour-coded by fractured ring segment. Section labels are placed to minimise overlap and connected to the median point of each segment.}
     \label{fig:parta}
 \end{figure}
 
@@ -163,7 +163,7 @@ We computed the gradient of the Log-Likelihood with respect to the model paramet
 \frac{\partial}{\partial \theta_\mu} \log L(\mathcal{D} \mid \boldsymbol{\theta})
 \end{equation}
 
-For the derivatives we used automatic differentiation via the jax library. The log-likelihood was implemented in a JAX-compatible format, which allowed for straightforward computation of the gradient and Hessian via automatic differentiation.
+For the derivatives we used automatic differentiation via the jax library. The log-likelihood was implemented in a JAX-compatible format, which allowed for straightforward computation of the gradient and Hessian via automatic differentiation (as shown in the previous research coursework).
 
 To ensure the correctness of the computed gradients, we also implemented a finite difference approximation using central differences:
 
@@ -192,49 +192,54 @@ To estimate the best-fitting model parameters, we performed maximum likelihood e
 
 We used the L-BFGS-B optimisation algorithm \cite{liu1989lbfgs} to maximise the log-likelihood function, with gradients computed via automatic differentiation using jax.
 
-\begin{table}[H]
-\centering
-\begin{tabular}{|c|c|}
-\hline
-\textbf{Index} & \textbf{Parameter} \\
-\hline
-0 & $N$ (number of holes) \\
-1 & $R$ (ring radius) \\
-2 & $\sigma_r$ (radial uncertainty) \\
-3 & $\sigma_t$ (tangential uncertainty) \\
-4--9 & $\phi_1$ to $\phi_6$ (angular offsets) \\
-10--15 & $x_1$ to $x_6$ (section $x$ offsets) \\
-16--21 & $y_1$ to $y_6$ (section $y$ offsets) \\
-\hline
-\end{tabular}
-\vspace{0.2cm}
-\caption{Parameter ordering for the anisotropic model.}
-\label{tab:anisotropic-params}
-\end{table}
-
 Initialisation values were based on the values presented by Woan and Bayley\cite{Woan2024} with small perturbations added. Parameter bounds were also applied ensuring physical validity.
 
 The optimiser returned the following result:
 
 \vspace{0.2cm}
 
-Maximised Log-Likelihood: 230.67
+Maximised Log-Likelihood = $230.67$, with parameter estimates:
 
-    \begin{verbatim}
-[ 3.55138326e+02  7.73198713e+01  2.57642786e-02  1.22578786e-01
- -2.52567532e+00 -2.13565124e+00 -1.97423759e+00 -1.32147032e+00
- -1.26317302e+00 -1.25305939e+00  7.96772149e+01  7.98973406e+01
-  7.98583275e+01  8.13733544e+01  8.15575431e+01  8.32199045e+01
-  1.36019135e+02  1.35701360e+02  1.35689755e+02  1.36066927e+02
-  1.35837969e+02  1.36401869e+02]
-    \end{verbatim}
+    \begin{longtable}{lr}
+        \toprule
+        \textbf{Parameter} & \textbf{Value} \\
+        \midrule
+        \endfirsthead
+        
+        $N$                        & 355.138 \\
+        $R$                        & 77.320 \\
+        $\sigma_r$                & 0.0258 \\
+        $\sigma_t$                & 0.1226 \\
+        $\phi_1$                  & -2.5257 \\
+        $\phi_2$                  & -2.1357 \\
+        $\phi_3$                  & -1.9742 \\
+        $\phi_4$                  & -1.3215 \\
+        $\phi_5$                  & -1.2632 \\
+        $\phi_6$                  & -1.2531 \\
+        $x_{\text{offset},1}$     & 79.677 \\
+        $x_{\text{offset},2}$     & 79.897 \\
+        $x_{\text{offset},3}$     & 79.858 \\
+        $x_{\text{offset},4}$     & 81.373 \\
+        $x_{\text{offset},5}$     & 81.558 \\
+        $x_{\text{offset},6}$     & 83.220 \\
+        $y_{\text{offset},1}$     & 136.019 \\
+        $y_{\text{offset},2}$     & 135.701 \\
+        $y_{\text{offset},3}$     & 135.690 \\
+        $y_{\text{offset},4}$     & 136.067 \\
+        $y_{\text{offset},5}$     & 135.838 \\
+        $y_{\text{offset},6}$     & 136.402 \\
+        \bottomrule
+        \caption{Maximum likelihood estimates for the anisotropic model parameters.}
+        \label{tab:mle_aniso}
+        \end{longtable}
+        
     
 Using these parameters, we predicted the expected hole positions for each section and overlaid them on the measured hole locations (Figure~\ref{fig:MLE_plot}). To reduce clutter, the predicted points were vertically shifted by 10~mm and arrows were added.
   
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{MLE_aniso.png}
-    \caption{Measured hole positions (circles) overlaid with predicted positions from the anisotropic model (x markers), vertically shifted by 10~mm for clarity. Arrows connect the first and last predicted points in each section to their true model locations. MLE estimation: N = 355.14, R= 77.32.}
+    \caption{Measured hole positions overlaid with predicted positions from the anisotropic model, vertically shifted by 10~mm for clarity. Arrows connect the first and last predicted points in each section to their true model locations. MLE estimation: N = 355.138, R= 77.320.}
     \label{fig:MLE_plot}
 \end{figure}
 
@@ -244,23 +249,47 @@ The optimiser returned the following result:
 
 \vspace{0.2cm}
 
-Maximised Log-Likelihood: $-20.37$
+Maximised Log-Likelihood: $-20.37$, with parameter estimates:
 
-\begin{verbatim}
-[ 3.54953104e+02  7.72779993e+01  1.24925618e-01 -2.52545406e+00 
-  -2.13497172e+00 -1.97450722e+00 -1.31829739e+00 -1.26683207e+00 
-  -1.25314722e+00 7.96396936e+01  7.98280318e+01  7.98622123e+01
-  8.11471212e+01  8.18393995e+01  8.32405652e+01  1.36016332e+02
-  1.35689853e+02  1.35638898e+02  1.35961123e+02  1.35884849e+02  
-  1.36361957e+02]
-\end{verbatim}
+\begin{longtable}{lr}
+    \toprule
+    \textbf{Parameter} & \textbf{Value} \\
+    \midrule
+    \endfirsthead
+    
+    $N$                        & 354.953 \\
+    $R$                        & 77.278 \\
+    $\sigma$                  & 0.1249 \\
+    $\phi_1$                  & -2.5255 \\
+    $\phi_2$                  & -2.1350 \\
+    $\phi_3$                  & -1.9745 \\
+    $\phi_4$                  & -1.3183 \\
+    $\phi_5$                  & -1.2668 \\
+    $\phi_6$                  & -1.2531 \\
+    $x_{\text{offset},1}$     & 79.640 \\
+    $x_{\text{offset},2}$     & 79.828 \\
+    $x_{\text{offset},3}$     & 79.862 \\
+    $x_{\text{offset},4}$     & 81.147 \\
+    $x_{\text{offset},5}$     & 81.839 \\
+    $x_{\text{offset},6}$     & 83.241 \\
+    $y_{\text{offset},1}$     & 136.016 \\
+    $y_{\text{offset},2}$     & 135.690 \\
+    $y_{\text{offset},3}$     & 135.639 \\
+    $y_{\text{offset},4}$     & 135.961 \\
+    $y_{\text{offset},5}$     & 135.885 \\
+    $y_{\text{offset},6}$     & 136.362 \\
+    \bottomrule
+    \caption{Maximum likelihood estimates for the isotropic model parameters.}
+    \label{tab:mle_iso}
+    \end{longtable}
+    
 
 As before, we predicted the hole positions using the optimised parameters and overlaid them on the measured data (Figure~\ref{fig:MLE_plot_iso}).
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{MLE_iso.png}
-    \caption{Measured hole positions (circles) overlaid with predicted positions from the isotropic model (x markers), vertically shifted by 10~mm for clarity. Arrows connect the first and last predicted points in each section to their true model locations. MLE estimation: N = 354.95, R= 77.38.}
+    \caption{Measured hole positions overlaid with predicted positions from the isotropic model, vertically shifted by 10~mm for clarity. Arrows connect the first and last predicted points in each section to their true model locations. MLE estimation: N = 354.953, R= 77.378.}
     \label{fig:MLE_plot_iso}
 \end{figure}
 
@@ -409,6 +438,8 @@ The isotropic model was fit using the same MCMC settings. The trace plots (Figur
     \label{fig:cornerplot_iso}
 \end{figure}
 
+\subsection*{Posterior predictive distribution - Section 1 Hole 5}
+
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
@@ -424,15 +455,15 @@ The isotropic model was fit using the same MCMC settings. The trace plots (Figur
         \caption{Isotropic model}
         \label{fig:predictive_iso}
     \end{subfigure}
-    \caption{Posterior predictive distributions for the position of a single hole (Section 1, Hole 5) under the anisotropic and isotropic models. Black dots show all holes in the selected section; the red dot marks the true location of the selected hole. Blue and green dots represent posterior predictive samples under each model.}
+    \caption{Posterior predictive distributions for the position of a single hole (Section 1, Hole 5) under the anisotropic and isotropic models. Black dots show other holes in the selected section; the red dot marks the true location of the selected hole. Blue and green dots represent posterior predictive samples under each model.}
     \label{fig:posterior_predictive_comparison}
 \end{figure}
 
-The predictive distributions show clear differences between the two models. In the isotropic case (Figure~\ref{fig:predictive_iso}), the posterior predictive samples form a near-circular cloud around the true location, which is consistent with the assumption of equal measurement uncertainty in all directions.
+The anisotropic model produces an elliptical distribution, as shown in Figure \ref{fig:predictive_aniso}. This shape reflects the assumption that uncertainty differs between the radial and tangential directions. Radial positions are better constrained due to the curvature of the ring, while tangential offsets are more sensitive to misalignments between broken fragments. This results in a tight ellipse along the radial direction and a broader spread tangentially.
 
-The anisotropic model (Figure~\ref{fig:predictive_aniso}) produces an elliptical distribution. This shape reflects the assumption that uncertainty differs between the radial and tangential directions. Radial positions are better constrained due to the curvature of the ring, while tangential offsets are more sensitive to misalignments between broken fragments. This results in a tight ellipse along the radial direction and a broader spread tangentially.
+In the isotropic case, the posterior predictive samples form a near-circular cloud around the true location as shown in Figure~\ref{fig:predictive_iso}. This is consistent with the assumption of equal measurement uncertainty in all directions.
 
-The sharpness and clarity of these distributions are a result of the large number of posterior samples used: 600,000 raw samples were produced.
+The sharpness and clarity of these distributions are a result of the large number of posterior samples used - 600,000 raw samples were produced.
 
 \section{Covariance Structure and Model Comparison}
 
@@ -449,7 +480,7 @@ However, this may be overly simplistic. A more physically realistic model accoun
 0 & \sigma_t^2
 \end{pmatrix}
 \]
-This anisotropic model reflects the idea that measurement uncertainty is typically larger in the direction around the ring (tangential) than towards/away from the centre (radial), especially when holes are arc-fitted or distorted by curvature.
+This anisotropic model reflects that measurement uncertainty is typically larger in the direction around the ring (tangential) than towards/away from the centre (radial), especially when holes are arc-fitted or distorted by curvature.
 
 \section*{Model Comparison}
 
@@ -475,11 +506,11 @@ We estimated these densities using kernel density estimation applied to posterio
     \label{fig:savage-dickey}
 \end{figure}
 
-The posterior distribution is sharply peaked away from zero, result is evidence against the isotropic model. The data favours a model in which radial and tangential uncertainties differ. The radial–tangential error structure likely arises from the way the ring was measured or manufactured, with uncertainty elongated along the arc.
+The posterior distribution is sharply peaked away from zero, which is evidence against the isotropic model. The data favours a model in which radial and tangential uncertainties differ. The radial–tangential error structure likely arises from the way the ring was manufactured - with uncertainty elongated along the arc.
 
 \subsection*{Nested Sampling and Log-Evidence Comparison}
 
-We used nested sampling to estimate the evidence for each model. Unlike the Savage-Dickey ratio, which only compares posterior and prior densities at a single point, nested sampling provides a measure of how well a model explains the data across its entire parameter space.
+We used nested sampling to estimate the evidence for each model. Unlike the Savage-Dickey ratio, nested sampling provides a measure of how well a model explains the data across its entire parameter space.
 
 The evidence for a model $\mathcal{M}$ is defined as:
 \[
@@ -487,7 +518,7 @@ The evidence for a model $\mathcal{M}$ is defined as:
 \]
 where $\mathcal{L}(\theta)$ is the likelihood and $\pi(\theta)$ is the prior. A greater evidence indicates a better balance between goodness-of-fit and model complexity.
 
-In our implementation, we used the dynesty library with 500 live points and the `rwalk` sampling method. The log-likelihood function was compiled using \texttt{jax.jit} for speed, and the prior transform was matched to the priors used in our Bayesian inference. Corner plots for these are shown in the appendix in Figures \ref{fig:nested_aniso} and \ref{fig:nested_iso}.
+We used the dynesty library with 500 live points and the `rwalk` sampling method. The log-likelihood function was compiled using jax.jit for speed, and the prior transform was matched to the priors used in our Bayesian inference. Corner plots for these are shown in the appendix in Figures \ref{fig:nested_aniso} and \ref{fig:nested_iso}.
 
 The resulting log-evidence estimates were:
 \[
@@ -497,7 +528,8 @@ The difference in log-evidence,
 \[
 \Delta \log Z = \log Z_{\text{aniso}} - \log Z_{\text{iso}} = 238.69 \pm 0.97,
 \]
-is in favour of the anisotropic model: a log-evidence differenceabove 100 is decisive evidence for the favourability of the Anisotropic model.
+is in favour of the anisotropic model: a log-evidence difference above 100 is decisive evidence for the use of the Anisotropic model.
+
 Together with the Savage-Dickey result, this confirms that the data clearly favour a model that allows for separate treatment of radial and tangential uncertainties.
 
 \section*{Conclusion}

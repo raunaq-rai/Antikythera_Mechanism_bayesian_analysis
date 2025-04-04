@@ -3,9 +3,25 @@
 
 # Bayesian Inference for the Antikythera Mechanism Calendar Ring
 
-The Antikythera mechanism is an ancient Greek mechanical device, dating back to around 100 BC, believed to be one of the earliest known astronomical calculators. Recovered from a shipwreck in 1901, it contains a complex system of gears that modeled celestial motions. Among its components, the calendar ring — a fragmented structure with evenly spaced holes — has been a subject of debate regarding its original purpose.
 
-Historically, it was assumed that the full ring contained 365 holes, corresponding to a solar calendar. However, recent studies suggest that it may instead  align with a lunar calendar (approx. 354 days). The goal of this project is to apply Bayesian inference and Hamiltonian Monte Carlo (HMC) to estimate the original number of holes in the complete ring, based on available fragmentary data.
+The Antikythera Mechanism is an ancient Greek device, often regarded as the world’s first analog computer. Dating back to ~100 BCE, it used a sophisticated system of gears to track celestial events. A key component is the calendar ring, a fragmented bronze disk believed to have once featured an evenly spaced set of holes.
+
+While traditionally thought to encode a 365-day solar calendar, recent research suggests the ring more likely followed a **354-day lunar cycle**. In this project, we apply Bayesian inference and Hamiltonian Monte Carlo to reconstruct the original structure of the ring and estimate the total number of holes using surviving fragment data.
+
+This work replicates and extends the statistical framework developed by Woan & Bayley (2024), comparing isotropic and anisotropic error models to assess measurement uncertainty.
+
+## Key Highlights
+
+- **Two Error Models:**  
+  Comparison of isotropic (circular uncertainty) vs. anisotropic (radial–tangential) uncertainty.
+
+- **Bayesian Model Comparison:**  
+  - **Savage–Dickey Bayes Factor** decisively favours the anisotropic model.  
+  - **Nested Sampling** confirms this with a log-evidence difference of **Δ log Z ≈ 239**.
+
+- **Final Estimate:**  
+  Using the anisotropic HMC model: Total number of holes = **355.1 ± 1.26**, supporting a 354-day lunar calendar hypothesis.
+
 
 ## Contents
 
