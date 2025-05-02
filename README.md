@@ -1,4 +1,3 @@
-# S2 coursework - Raunaq Rai
 ### rsr45@cam.ac.uk
 
 # Bayesian Inference for the Antikythera Mechanism Calendar Ring
@@ -10,7 +9,7 @@ While traditionally thought to encode a 365-day solar calendar, recent research 
 
 This work replicates and extends the statistical framework developed by Woan & Bayley (2024), comparing isotropic and anisotropic error models to assess measurement uncertainty.
 
-## Key Highlights
+## Key work:
 
 - **Two Error Models:**  
   Comparison of isotropic (circular uncertainty) vs. anisotropic (radial–tangential) uncertainty.
